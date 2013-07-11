@@ -17,7 +17,10 @@ exports.handleRequest = function (req, res) {
   console.log(exports.datadir);
   console.log("request method",req.method);
   var urlsplit = url.parse(req.url).pathname.split("/");
-  console.log('url split',urlsplit);
+  urlsplitlast=urlsplit[urlsplit.length-1];
+  console.log('url',urlsplitlast);
+  console.log(typeof(urlsplitlast));
+  console.log(urlsplitlast==='handle_posts.js');
 
   if ( req.method==='POST' ){
     console.log('handling POST');
@@ -26,21 +29,26 @@ exports.handleRequest = function (req, res) {
     });
     req.on('end',function(chunk){
       console.log('body',typeof(body));
-      body=body.split('=');
-      writetoFile('/Users/hackreactor/code/josh3336/2013-06-web-historian/spec/testdata/sites.txt', body[1]+"\n");
-      console.log('end of request, the body is',body);
+      body=JSON.parse(body)
+      writetoFile('/Users/hackreactor/code/josh3336/2013-06-web-historian/data/sites.txt', body.address+"\n");
+      console.log('end of request, the body is',body.address);
       res.writeHead(302,{'Content-Type':'text/html'});
       res.end();
       console.log('ending post');
     });
-
-
   }
   else if (req.method === 'GET') {
     if(req.url === '/' || req.url === '/index'){ 
       filePath = path.join(__dirname, "public/index.html");
       file=fs.readFileSync(filePath);
       console.log('need to serve index');
+      res.writeHead(200,{'Content-Type':'text/html'});
+      res.end(file);
+    }
+    else if(urlsplitlast == 'handle_posts.js' || urlsplitlast === 'styles.css'){ 
+      filePath = path.join(__dirname, "public/"+urlsplit[urlsplit.length-1]);
+      file=fs.readFileSync(filePath);
+      console.log('serving the other public stuff');
       res.writeHead(200,{'Content-Type':'text/html'});
       res.end(file);
     }
