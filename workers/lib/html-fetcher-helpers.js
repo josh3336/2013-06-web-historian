@@ -12,11 +12,14 @@ exports.readUrls = function(filePath, cb){
 };
 
 exports.downloadUrls = function(urls){
-   http.get('http://www.google.com', function (error, result) {
-    if (error) {
-      console.error(error);
-    } else {
-      console.log('File downloaded at: ' + result.file);
-    }
-  });
+  for(var i=0;i<urls.length;i++){
+    var options = {url: urls[i]};
+    http.get(options, '/path/to/foo.pdf', function (error, result) {
+      if (error) {
+        console.error(error);
+      } else {
+        console.log('File downloaded at: ' + result.file);
+      }
+    });
+  }
 };
