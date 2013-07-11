@@ -4,6 +4,7 @@ var path = require('path');
 var url = require('url');
 var filePath;
 var file;
+var fs = require('fs');
 
 
 exports.sum=function(numa,numb){
@@ -19,14 +20,20 @@ exports.handleRequest = function (req, res) {
   console.log('url split',urlsplit);
 
   if ( req.method==='POST' ){
+    console.log('handling POST');
     req.on('data',function(chunk){
       body+=chunk;
     });
     req.on('end',function(chunk){
-      body=JSON.parse(body);
-      writetoFile('/Users/hackreactor/code/josh3336/2013-06-web-historian/data/sites.txt', body.address+"\r\n");
+      console.log('body',typeof(body));
+      body=body.split('=');
+      writetoFile('/Users/hackreactor/code/josh3336/2013-06-web-historian/spec/testdata/sites.txt', body[1]+"\n");
       console.log('end of request, the body is',body);
+      res.writeHead(302,{'Content-Type':'text/html'});
+      res.end();
+      console.log('ending post');
     });
+
 
   }
   else if (req.method === 'GET') {
@@ -34,15 +41,23 @@ exports.handleRequest = function (req, res) {
       filePath = path.join(__dirname, "public/index.html");
       file=fs.readFileSync(filePath);
       console.log('need to serve index');
-      res.writeHead(200,{'Content-Type':'text/plain'});
+      res.writeHead(200,{'Content-Type':'text/html'});
       res.end(file);
     }
-    else if(urlsplit[urlsplit.length-1]!=='/index'){ 
+
+    else if(urlsplit[1]!=='/index'){ 
       console.log('need to serve not index');
       filePath = path.join('/Users/hackreactor/code/josh3336/2013-06-web-historian/data/sites', urlsplit[urlsplit.length-1]);
-      file=fs.readFileSync(filePath);
-      res.writeHead(200,{'Content-Type':'text/plain'});
-      res.end(file);
+      if(fs.existsSync(filePath)){
+        file=fs.readFileSync(filePath);
+        res.writeHead(200,{'Content-Type':'text/plain'});
+        res.end(file);
+      }
+      else{
+        console.log('not serving');
+        res.writeHead(404,{'Content-Type':'text/html'});
+        res.end();
+      }
     }
 
     // For requests for / or index.html
@@ -61,13 +76,7 @@ exports.handleRequest = function (req, res) {
 writetoFile= function(location,content){
   var fs = require('fs');
   console.log(location,content);
-  fs.appendFile(location, content, function(err) {
-      if(err) {
-          console.log('err');
-      } else {
-          console.log("The file was saved!");
-      }
-  }); 
+  fs.appendFileSync(location, content);
 };
 
 

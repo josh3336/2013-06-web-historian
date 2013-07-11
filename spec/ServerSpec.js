@@ -1,7 +1,9 @@
 var handler = require("../web/request-handler");
-handler.datadir = __dirname + "testdata/sites.txt";
+handler.datadir = __dirname + "/testdata/sites.txt";
 var stubs = require("./helpers/stubs");
 var res;
+var fs = require('fs');
+
 
 // allows us to run tests async
 function async(cb){
@@ -33,24 +35,29 @@ describe("Node Server Request Listener Function", function() {
       expect(res._responseCode).toEqual(200);
       expect(res._data).toMatch(/google/); // the resulting html should have the text "google"
       expect(res._ended).toEqual(true);
-    })
+    });
   });
 
-  xit("Should accept posts to /", function() {
+  it("Should accept posts to /", function() {
     fs.writeFileSync(handler.datadir, ""); // reset the test file
 
     var url = "www.example.com";
     var req = new stubs.Request("/", "POST", {url: url});
 
+    console.log('req url',req.url);
     handler.handleRequest(req, res);
-
-    var fileContents = fs.readFileSync(handler.datadir);
+    console.log(typeof(handler.datadir));
+    console.log('filepath',handler.datadir);
+    var fileContents = fs.readFileSync(handler.datadir,'utf8');
+    urlspace=url+"\n";
+    console.log(urlspace.length)
+    console.log('fileContents', fileContents, fileContents.length);
     expect(res._responseCode).toEqual(302);
     expect(fileContents).toEqual(url + "\n");
     expect(res._ended).toEqual(true);
   });
 
-  xit("Should 404 when asked for a nonexistent file", function() {
+  it("Should 404 when asked for a nonexistent file", function() {
     var req = new stubs.Request("/arglebargle", "GET");
     handler.handleRequest(req, res);
     async(function() {
